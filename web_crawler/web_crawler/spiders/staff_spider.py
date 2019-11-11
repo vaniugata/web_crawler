@@ -2,16 +2,21 @@ import scrapy
 
 class StaffSpider(scrapy.Spider):
     name = "staff"
+    url = 'https://www.fmi.uni-sofia.bg/bg/faculty-staff'
 
     def start_requests(self):
-        urls = ['https://www.fmi.uni-sofia.bg/bg/faculty-staff']
+            yield scrapy.Request(url = self.url, callback = self.crawl_page) 
 
-        for url in urls:
-            yield scrapy.Request(url = url, callback = self.parse) 
+    def crawl_page(self, response):
+        print('next_page')
+        for entry in response.xpath('//h3'):
+            url = 'https://www.fmi.uni-sofia.bg' + str(entry.xpath('a/@href').get())
+            yield scrapy.Request(url = url, callback=self.parse)
     
     def parse(self, response):
+        print( response.xpath('//h1/text()').get() )
         yield {
-            'name': response.xpath('//a/text()').getall()
+            'name': response.xpath('//h1/').get().encode('utf-8')
         }
         #write data to file
         # with open('content.txt', 'w') as f:
